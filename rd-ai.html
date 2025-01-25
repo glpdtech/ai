@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gulf Land AI Assistant</title>
+    <style>
+        /* Reset and universal styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        /* Floating button styling */
+        .floating-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background-color: #006F80; /* Gulf Land's primary color */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for elevation */
+            transition: all 0.3s ease-in-out;
+            border: none;
+            z-index: 999;
+        }
+
+        /* Hover effect for button */
+        .floating-button:hover {
+            background-color: #004d59;  /* Darker shade of Gulf Land color */
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
+            transform: scale(1.1);  /* Button slightly grows */
+        }
+
+        /* Active state when button is clicked */
+        .floating-button:active {
+            background-color: #003a4d;  /* Even darker shade when pressed */
+            transform: scale(1);  /* Reset scale on click */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Reset shadow */
+        }
+
+        /* Icon inside the button */
+        .floating-button-icon {
+            font-size: 40px; /* Size of the icon */
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Hover effect on icon (icon rotates a little) */
+        .floating-button:hover .floating-button-icon {
+            transform: rotate(45deg); /* Icon rotates for an elegant touch */
+        }
+
+        /* Chat window styling */
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 100%;
+            max-width: 400px;
+            height: 450px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 998;
+        }
+
+        .chat-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #006F80;
+            margin-bottom: 10px;
+        }
+
+        .chat-body {
+            overflow-y: auto;
+            height: 300px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .chat-input {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chat-input textarea {
+            width: 80%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            resize: none;
+        }
+
+        .chat-input button {
+            background-color: #006F80;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .chat-input button:hover {
+            background-color: #004d59;
+        }
+
+        .message {
+            background-color: #e9f5f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.ai {
+            background-color: #f1f1f1;
+            margin-left: 20px;
+        }
+
+        .message.user {
+            background-color: #006F80;
+            color: white;
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        /* Media Queries for responsiveness */
+        @media (max-width: 768px) {
+            .floating-button {
+                width: 70px;
+                height: 70px;
+                font-size: 35px;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .chat-window {
+                bottom: 80px;
+                width: 90%;
+                max-width: 360px;
+            }
+
+            .chat-header {
+                font-size: 1.1rem;
+            }
+
+            .chat-body {
+                height: 250px;
+            }
+
+            .chat-input textarea {
+                font-size: 12px;
+            }
+
+            .chat-input button {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .floating-button {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .chat-window {
+                bottom: 70px;
+                width: 90%;
+                max-width: 320px;
+            }
+
+            .chat-header {
+                font-size: 1rem;
+            }
+
+            .chat-body {
+                height: 220px;
+            }
+
+            .chat-input textarea {
+                font-size: 11px;
+            }
+
+            .chat-input button {
+                font-size: 11px;
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating button that activates chat window -->
+    <div class="floating-button" onclick="toggleChatWindow()">
+        <span class="floating-button-icon">💬</span> <!-- Chat icon -->
+    </div>
+
+    <!-- Chat window -->
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">Gulf Land AI Assistant</div>
+        <div class="chat-body" id="chat-body">
+            <!-- Welcome message will appear when the chat window opens -->
+        </div>
+        <div class="chat-input">
+            <textarea id="user-input" placeholder="Ask something..." oninput="resizeTextarea(this)" onkeydown="handleEnter(event)"></textarea>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '124SdB1Vby3eWKZqlwQdL39tfEX9x4BLEvy-fARoxZ8c';
+        const API_KEY = 'AIzaSyDa6rhX8aim0CRZ_Zu4l2nGSC0BT8raNX0';
+
+        let chatWindow = document.getElementById('chat-window');
+        let chatBody = document.getElementById('chat-body');
+        let greetingShown = false;
+
+        // Toggle chat window visibility
+        function toggleChatWindow() {
+            if (chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+            } else {
+                chatWindow.style.display = 'flex';
+                chatWindow.style.opacity = '1';
+                if (!greetingShown) {
+                    showGreetingMessage();
+                    greetingShown = true;
+                }
+            }
+        }
+
+        // Add message to the chat window
+        function addMessage(content, sender) {
+            const message = document.createElement('div');
+            message.classList.add('message', sender);
+            message.textContent = content;
+            chatBody.appendChild(message);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // Show a welcoming greeting when the chat window opens
+        function showGreetingMessage() {
+            addMessage("Hello! I'm Raid, your AI assistant from Gulf Land Property Developers. How may I help you today?", 'ai');
+        }
+
+        // Fetch data from Google Sheets
+        function fetchData(userInput) {
+            gapi.client.init({
+                'apiKey': API_KEY,
+            }).then(() => {
+                return gapi.client.request({
+                    'path': `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A2:C`,
+                });
+            }).then(response => {
+                const sheetData = response.result.values;
+                const answer = searchSheetData(sheetData, userInput);
+                if (answer) {
+                    addMessage(answer, 'ai');
+                } else {
+                    addMessage("Sorry, I couldn't find anything related to your query.", 'ai');
+                }
+            });
+        }
+
+        // Search for the relevant response in the sheet based on the user's query
+        function searchSheetData(sheetData, userQuery) {
+            const queryLower = userQuery.toLowerCase();
+            for (let i = 0; i < sheetData.length; i++) {
+                const keyword = sheetData[i][0].toLowerCase();
+                const response = sheetData[i][1];
+                if (keyword.includes(queryLower)) {
+                    return response;
+                }
+            }
+            return null;
+        }
+
+        // Send user message and fetch data
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === '') return;
+            addMessage(userInput, 'user');
+            document.getElementById('user-input').value = '';
+            fetchData(userInput);
+        }
+
+        // Resize textarea to fit content
+        function resizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        // Allow pressing Enter to send the message
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Load Google Sheets API
+        function loadSheetsAPI() {
+            gapi.load('client', fetchData);
+        }
+    </script>
+
+    <script src="https://apis.google.com/js/api.js?onload=loadSheetsAPI"></script>
+</body>
+</html>
