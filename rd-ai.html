@@ -212,13 +212,15 @@
 
         function sendMessage() {
             const userInput = document.getElementById('user-input');
-            if (!userInput.value.trim()) return;
-            addMessage(userInput.value, 'user');
-            userInput.value = '';
-            setTimeout(() => {
-                addMessage("I'm here to help! What can I do for you?", 'ai');
-            }, 1000); // Simulating AI response
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return;
+            
+            addMessage(userMessage, 'user');
+            userInput.value = ''; // Clear the text
+            userInput.style.height = 'auto'; // Reset the height of the text area
+            fetchData(userMessage); // Call the fetchData function
         }
+
 
         function handleEnter(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
