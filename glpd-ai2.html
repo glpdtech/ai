@@ -308,15 +308,16 @@
 
         // Send user message and fetch data
         function sendMessage() {
-            const userInput = document.getElementById('user-input').value;
-            if (userInput.trim() === '') return;
+            let userInput = document.getElementById('user-input').value.trim(); // Ensure no spaces before or after
+            
+            if (userInput === '') return;
             
             // Add the user's message
             addMessage(userInput, 'user');
             
             // Clear the input field and reset the height
             const userInputField = document.getElementById('user-input');
-            userInputField.value = '';
+            userInputField.value = '';  // Clear input
             resizeTextarea(userInputField);  // Reset the height of the textarea after clearing
             
             // Fetch data related to the user input
