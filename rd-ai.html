@@ -161,13 +161,12 @@
         }
 
         // Send user message and fetch data
-        
-          function sendMessage() {
+        function sendMessage() {
             const userInputField = document.getElementById('user-input');
             let userInput = userInputField.value.trim(); // Remove leading/trailing spaces
-    
+        
             if (userInput === '') return; // Prevent sending empty messages
-    
+        
             addMessage(userInput, 'user'); // Display user message
             userInputField.value = ''; // Clear input
             resizeTextarea(userInputField); // Reset height
@@ -175,6 +174,7 @@
             // Fetch data related to the user input
             fetchData(userInput);
         }
+
 
         // Resize textarea to fit content
         function resizeTextarea(textarea) {
