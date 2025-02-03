@@ -78,7 +78,7 @@
         <!-- Chat messages will appear here -->
     </div>
     <div id="input-container">
-        <input type="text" id="user-input" placeholder="Type your message...">
+        <textarea id="user-input" placeholder="Ask something..." oninput="resizeTextarea(this)" onkeydown="handleEnter(event)"></textarea>
         <button onclick="sendMessage()">Send</button>
     </div>
 </div>
