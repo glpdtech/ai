@@ -107,11 +107,12 @@
 
         // Add message to the chat window
         function addMessage(content, sender) {
-            const message = document.createElement('div');
-            message.classList.add('message', sender);
-            message.textContent = content;
-            chatBody.appendChild(message);
-            chatBody.scrollTop = chatBody.scrollHeight;
+        const chatBody = document.getElementById('chat-body');
+        const message = document.createElement('div');
+        message.classList.add('message', sender);
+        message.textContent = content;
+        chatBody.appendChild(message);
+        chatBody.scrollTop = chatBody.scrollHeight;
         }
 
         // Show a welcoming greeting when the chat window opens
@@ -152,18 +153,16 @@
         }
 
         // Send user message and fetch data
-        function sendMessage() {
-            let userInput = document.getElementById('user-input').value.trim(); // Ensure no spaces before or after
-            
-            if (userInput === '') return;
-            
-            // Add the user's message
-            addMessage(userInput, 'user');
-            
-            // Clear the input field and reset the height
+        
+          function sendMessage() {
             const userInputField = document.getElementById('user-input');
-            userInputField.value = '';  // Clear input
-            resizeTextarea(userInputField);  // Reset the height of the textarea after clearing
+            let userInput = userInputField.value.trim(); // Remove leading/trailing spaces
+    
+            if (userInput === '') return; // Prevent sending empty messages
+    
+            addMessage(userInput, 'user'); // Display user message
+            userInputField.value = ''; // Clear input
+            resizeTextarea(userInputField); // Reset height
             
             // Fetch data related to the user input
             fetchData(userInput);
