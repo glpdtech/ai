@@ -7,8 +7,6 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -66,9 +64,6 @@
             cursor: pointer;
             margin-left: 10px;
         }
-        button:hover {
-            background-color: #005bb5;
-        }
     </style>
 </head>
 <body>
@@ -84,7 +79,6 @@
 <script>
     let chatBody = document.getElementById('chat-body');
 
-    // Add message to chat body
     function addMessage(content, sender) {
         const message = document.createElement('div');
         message.classList.add('message', sender);
@@ -93,7 +87,6 @@
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    // Send message function
     function sendMessage() {
         const userInputField = document.getElementById('user-input');
         let userInput = userInputField.value.trim();
@@ -104,16 +97,12 @@
         userInputField.value = '';
         resizeTextarea(userInputField);
 
-        // Send request to Google Apps Script
-        fetch("https://script.google.com/macros/s/AKfycbzgWageW1bGj-VAmddQLDZ_dW2Zhl6sbtvmdDt9O4a8Pzoje2FpF0vFmwjOSoBC5QR4ng/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzRONYmXj4xRCxNsGOo-piUf-KhgJ79yuIwgWuMcLgzxzWWPslijpfbDBIV4jUNTDhF2w/exec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: userInput })
         })
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.reply) {
                 addMessage(data.reply, 'ai');
@@ -127,13 +116,11 @@
         });
     }
 
-    // Resize textarea
     function resizeTextarea(textarea) {
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight) + 'px';
     }
 
-    // Enter key to send message
     document.getElementById("user-input").addEventListener("keydown", function(event) {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
