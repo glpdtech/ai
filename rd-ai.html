@@ -7,6 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -64,70 +66,135 @@
             cursor: pointer;
             margin-left: 10px;
         }
+        button:hover {
+            background-color: #005bb5;
+        }
     </style>
 </head>
 <body>
 
 <div id="chat-container">
-    <div id="chat-body"></div>
+    <div id="chat-body">
+        <!-- Chat messages will appear here -->
+    </div>
     <div id="input-container">
         <textarea id="user-input" placeholder="Ask something..." oninput="resizeTextarea(this)"></textarea>
         <button onclick="sendMessage()">Send</button>
     </div>
 </div>
 
-<script>
-    let chatBody = document.getElementById('chat-body');
+ <script>
+        const SHEET_ID = '124SdB1Vby3eWKZqlwQdL39tfEX9x4BLEvy-fARoxZ8c';
+        const API_KEY = 'AIzaSyDa6rhX8aim0CRZ_Zu4l2nGSC0BT8raNX0';
 
-    function addMessage(content, sender) {
+        let chatWindow = document.getElementById('chat-window');
+        let chatBody = document.getElementById('chat-body');
+        let greetingShown = false;
+
+        // Toggle chat window visibility
+        function toggleChatWindow() {
+            if (chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+            } else {
+                chatWindow.style.display = 'flex';
+                chatWindow.style.opacity = '1';
+                if (!greetingShown) {
+                    showGreetingMessage();
+                    greetingShown = true;
+                }
+            }
+        }
+
+     // Add event listener to send message on pressing Enter
+    document.getElementById("user-input").addEventListener("keydown", function(event) {
+            if (event.key === "Enter" && !event.shiftKey) { // Prevents line break
+                event.preventDefault(); 
+                sendMessage();
+            }
+        });
+
+        // Add message to the chat window
+        function addMessage(content, sender) {
+        const chatBody = document.getElementById('chat-body');
         const message = document.createElement('div');
         message.classList.add('message', sender);
         message.textContent = content;
         chatBody.appendChild(message);
         chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function sendMessage() {
-        const userInputField = document.getElementById('user-input');
-        let userInput = userInputField.value.trim();
-
-        if (userInput === '') return;
-
-        addMessage(userInput, 'user');
-        userInputField.value = '';
-        resizeTextarea(userInputField);
-
-        fetch("https://script.google.com/macros/s/AKfycbwbXzaRZ-Vw4zj1Xi9qUTgJ3F4x5otv6llVrxm35V1rUbrluXxBBm1c2falvB5wE5rt6w/exec", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userInput })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.reply) {
-                addMessage(data.reply, 'ai');
-            } else {
-                addMessage("Sorry, I didn't understand that.", 'ai');
-            }
-        })
-        .catch(error => {
-            addMessage("An error occurred while processing your request.", 'ai');
-            console.error("Fetch error:", error);
-        });
-    }
-
-    function resizeTextarea(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight) + 'px';
-    }
-
-    document.getElementById("user-input").addEventListener("keydown", function(event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
         }
-    });
-</script>
 
+        // Show a welcoming greeting when the chat window opens
+        function showGreetingMessage() {
+            addMessage("Hello! I'm Raid, your AI assistant from Gulf Land Property Developers. How may I help you today?", 'ai');
+        }
+
+        // Fetch data from Google Sheets
+        function fetchData(userInput) {
+            gapi.client.init({
+                'apiKey': API_KEY,
+            }).then(() => {
+                return gapi.client.request({
+                    'path': `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A2:C`,
+                });
+            }).then(response => {
+                const sheetData = response.result.values;
+                const answer = searchSheetData(sheetData, userInput);
+                if (answer) {
+                    addMessage(answer, 'ai');
+                } else {
+                    addMessage("Sorry, I couldn't find anything related to your query.", 'ai');
+                }
+            });
+        }
+
+        // Search for the relevant response in the sheet based on the user's query
+        function searchSheetData(sheetData, userQuery) {
+            const queryLower = userQuery.toLowerCase();
+            for (let i = 0; i < sheetData.length; i++) {
+                const keyword = sheetData[i][0].toLowerCase();
+                const response = sheetData[i][1];
+                if (keyword.includes(queryLower)) {
+                    return response;
+                }
+            }
+            return null;
+        }
+
+        // Send user message and fetch data
+        function sendMessage() {
+            const userInputField = document.getElementById('user-input');
+            let userInput = userInputField.value.trim(); // Remove leading/trailing spaces
+        
+            if (userInput === '') return; // Prevent sending empty messages
+        
+            addMessage(userInput, 'user'); // Display user message
+            userInputField.value = ''; // Clear input
+            resizeTextarea(userInputField); // Reset height
+            
+            // Fetch data related to the user input
+            fetchData(userInput);
+        }
+
+
+        // Resize textarea to fit content
+        function resizeTextarea(textarea) {
+            textarea.style.height = 'auto';  // Reset the height
+            textarea.style.height = (textarea.scrollHeight) + 'px';  // Adjust the height according to the content
+        }
+
+        // Allow pressing Enter to send the message
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Load Google Sheets API
+        function loadSheetsAPI() {
+            gapi.load('client', fetchData);
+        }
+    </script>
+
+    <script src="https://apis.google.com/js/api.js?onload=loadSheetsAPI"></script>
 </body>
 </html>
