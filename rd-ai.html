@@ -83,118 +83,123 @@
     </div>
 </div>
 
- <script>
-        const SHEET_ID = '124SdB1Vby3eWKZqlwQdL39tfEX9x4BLEvy-fARoxZ8c';
-        const API_KEY = 'AIzaSyDa6rhX8aim0CRZ_Zu4l2nGSC0BT8raNX0';
+<script>
+    const SHEET_ID = '124SdB1Vby3eWKZqlwQdL39tfEX9x4BLEvy-fARoxZ8c';
+    const API_KEY = 'AIzaSyDa6rhX8aim0CRZ_Zu4l2nGSC0BT8raNX0';
+    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"; // Replace with your OpenAI API Key
 
-        let chatWindow = document.getElementById('chat-window');
-        let chatBody = document.getElementById('chat-body');
-        let greetingShown = false;
-
-        // Toggle chat window visibility
-        function toggleChatWindow() {
-            if (chatWindow.style.display === 'flex') {
-                chatWindow.style.display = 'none';
-            } else {
-                chatWindow.style.display = 'flex';
-                chatWindow.style.opacity = '1';
-                if (!greetingShown) {
-                    showGreetingMessage();
-                    greetingShown = true;
-                }
-            }
-        }
-
-     // Add event listener to send message on pressing Enter
-    document.getElementById("user-input").addEventListener("keydown", function(event) {
-            if (event.key === "Enter" && !event.shiftKey) { // Prevents line break
-                event.preventDefault(); 
-                sendMessage();
-            }
-        });
-
-        // Add message to the chat window
-        function addMessage(content, sender) {
+    // Add message to chat window
+    function addMessage(content, sender) {
         const chatBody = document.getElementById('chat-body');
         const message = document.createElement('div');
         message.classList.add('message', sender);
         message.textContent = content;
         chatBody.appendChild(message);
         chatBody.scrollTop = chatBody.scrollHeight;
-        }
+    }
 
-        // Show a welcoming greeting when the chat window opens
-        function showGreetingMessage() {
-            addMessage("Hello! I'm Raid, your AI assistant from Gulf Land Property Developers. How may I help you today?", 'ai');
-        }
-
-        // Fetch data from Google Sheets
-        function fetchData(userInput) {
-            gapi.client.init({
-                'apiKey': API_KEY,
-            }).then(() => {
-                return gapi.client.request({
-                    'path': `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A2:C`,
-                });
-            }).then(response => {
-                const sheetData = response.result.values;
-                const answer = searchSheetData(sheetData, userInput);
-                if (answer) {
-                    addMessage(answer, 'ai');
-                } else {
-                    addMessage("Sorry, I couldn't find anything related to your query.", 'ai');
-                }
+    // Fetch data from Google Sheets
+    function fetchData(userInput) {
+        gapi.client.init({ 'apiKey': API_KEY }).then(() => {
+            return gapi.client.request({
+                'path': `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A2:B`,
             });
-        }
+        }).then(response => {
+            const sheetData = response.result.values;
+            const answer = searchSheetData(sheetData, userInput);
 
-        // Search for the relevant response in the sheet based on the user's query
-        function searchSheetData(sheetData, userQuery) {
-            const queryLower = userQuery.toLowerCase();
-            for (let i = 0; i < sheetData.length; i++) {
-                const keyword = sheetData[i][0].toLowerCase();
-                const response = sheetData[i][1];
-                if (keyword.includes(queryLower)) {
-                    return response;
-                }
+            if (answer) {
+                addMessage(answer, 'ai');
+            } else {
+                addMessage("Searching AI for an answer...", 'ai');
+                fetchChatGPTResponse(userInput);
             }
-            return null;
-        }
+        }).catch(error => {
+            console.error("Error fetching Google Sheets:", error);
+            addMessage("Error accessing data. Please try again later.", 'ai');
+        });
+    }
 
-        // Send user message and fetch data
-        function sendMessage() {
-            const userInputField = document.getElementById('user-input');
-            let userInput = userInputField.value.trim(); // Remove leading/trailing spaces
-        
-            if (userInput === '') return; // Prevent sending empty messages
-        
-            addMessage(userInput, 'user'); // Display user message
-            userInputField.value = ''; // Clear input
-            resizeTextarea(userInputField); // Reset height
-            
-            // Fetch data related to the user input
-            fetchData(userInput);
-        }
-
-
-        // Resize textarea to fit content
-        function resizeTextarea(textarea) {
-            textarea.style.height = 'auto';  // Reset the height
-            textarea.style.height = (textarea.scrollHeight) + 'px';  // Adjust the height according to the content
-        }
-
-        // Allow pressing Enter to send the message
-        function handleEnter(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
+    // Search for the relevant response in the sheet based on the user's query
+    function searchSheetData(sheetData, userQuery) {
+        const queryLower = userQuery.toLowerCase();
+        for (let i = 0; i < sheetData.length; i++) {
+            const keyword = sheetData[i][0].toLowerCase();
+            const response = sheetData[i][1];
+            if (keyword.includes(queryLower)) {
+                return response;
             }
         }
+        return null;
+    }
 
-        // Load Google Sheets API
-        function loadSheetsAPI() {
-            gapi.load('client', fetchData);
+    // Query ChatGPT API
+    function fetchChatGPTResponse(userMessage) {
+        const url = "https://api.openai.com/v1/chat/completions";
+
+        const payload = {
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "system", content: "You are a helpful assistant answering real estate-related questions." },
+                { role: "user", content: userMessage }
+            ],
+            temperature: 0.7
+        };
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + OPENAI_API_KEY,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const reply = data.choices?.[0]?.message?.content || "I'm not sure how to respond.";
+            addMessage(reply, 'ai');
+        })
+        .catch(error => {
+            console.error("ChatGPT API Error:", error);
+            addMessage("Sorry, I couldn't fetch an AI response.", 'ai');
+        });
+    }
+
+    // Send user message and fetch data
+    function sendMessage() {
+        const userInputField = document.getElementById('user-input');
+        let userInput = userInputField.value.trim(); // Remove leading/trailing spaces
+
+        if (userInput === '') return; // Prevent sending empty messages
+
+        addMessage(userInput, 'user'); // Display user message
+        userInputField.value = ''; // Clear input
+        resizeTextarea(userInputField); // Reset height
+
+        // Fetch data related to the user input
+        fetchData(userInput);
+    }
+
+    // Resize textarea to fit content
+    function resizeTextarea(textarea) {
+        textarea.style.height = 'auto';  // Reset the height
+        textarea.style.height = (textarea.scrollHeight) + 'px';  // Adjust the height according to the content
+    }
+
+    // Allow pressing Enter to send the message
+    document.getElementById("user-input").addEventListener("keydown", function(event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
         }
-    </script>
+    });
 
-    <script src="https://apis.google.com/js/api.js?onload=loadSheetsAPI"></script>
+    // Load Google Sheets API
+    function loadSheetsAPI() {
+        gapi.load('client', fetchData);
+    }
+</script>
+
+<script src="https://apis.google.com/js/api.js?onload=loadSheetsAPI"></script>
 </body>
 </html>
