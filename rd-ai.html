@@ -162,18 +162,30 @@
 
         // Send user message and fetch data
         function sendMessage() {
-            const userInputField = document.getElementById('user-input');
-            let userInput = userInputField.value.trim(); // Remove leading/trailing spaces
-        
-            if (userInput === '') return; // Prevent sending empty messages
-        
-            addMessage(userInput, 'user'); // Display user message
-            userInputField.value = ''; // Clear input
-            resizeTextarea(userInputField); // Reset height
+        const userInputField = document.getElementById('user-input');
+        let userInput = userInputField.value.trim();
             
-            // Fetch data related to the user input
-            fetchData(userInput);
+            if (userInput === '') return;
+            
+            addMessage(userInput, 'user'); 
+            userInputField.value = ''; 
+            resizeTextarea(userInputField); 
+            
+            // Send to Google Apps Script backend
+            fetch("https://script.google.com/macros/s/AKfycbzgWageW1bGj-VAmddQLDZ_dW2Zhl6sbtvmdDt9O4a8Pzoje2FpF0vFmwjOSoBC5QR4ng/exec", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage(data.reply, 'ai');
+            })
+            .catch(error => {
+                addMessage("Sorry, an error occurred.", 'ai');
+            });
         }
+
 
 
         // Resize textarea to fit content
