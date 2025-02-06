@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f4f4;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #birthdatePrompt {
+            display: none;
+        }
+        #response {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #007BFF;
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #007BFF;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 5px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 480px) {
+            .chat-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <img src="glpdlogo.jpg" alt="Logo" class="logo">
+        <h2>GLPD IT Chatbot</h2>
+        <p>Enter your GLPD email:</p>
+        <input type="text" id="keyword" placeholder="Type your GLPD email here">
+        <button onclick="askBirthdate()">Next</button>
+        
+        <div id="birthdatePrompt">
+            <p>Enter your birthdate (MM/DD/YYYY):</p>
+            <input type="text" id="birthdate" placeholder="MM/DD/YYYY">
+            <button id="submitButton" onclick="getResponse()">Submit</button>
+            <p class="loading" id="loadingMessage">Fetching data<span class="spinner"></span></p>
+        </div>
+        
+        <h3 id="response"></h3>
+    </div>
+
+    <script>
+        let keyword = "";
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzoRsjkx2KoxVL-xzs-qkt_ZzMws--yRai6MGDimYsNNvREdvPwKBdIFgL2TB6qrUeoJQ/exec"; // Replace with your actual script URL
+        
+        function askBirthdate() {
+            keyword = document.getElementById("keyword").value.trim();
+            if (keyword) {
+                document.getElementById("birthdatePrompt").style.display = "block";
+            } else {
+                alert("Please enter a keyword first.");
+            }
+        }
+
+        function getResponse() {
+            let birthdate = document.getElementById("birthdate").value.trim();
+            if (!birthdate) {
+                alert("Please enter your birthdate.");
+                return;
+            }
+
+            let submitButton = document.getElementById("submitButton");
+            let loadingMessage = document.getElementById("loadingMessage");
+            let responseElement = document.getElementById("response");
+
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerText = "Loading...";
+            loadingMessage.style.display = "block";
+            responseElement.innerText = ""; // Clear previous response
+
+            fetch(`${scriptURL}?keyword=${encodeURIComponent(keyword)}&birthdate=${encodeURIComponent(birthdate)}`)
+                .then(response => response.text())
+                .then(data => {
+                    responseElement.innerText = data;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    responseElement.innerText = "An error occurred. Try again.";
+                })
+                .finally(() => {
+                    // Restore button state
+                    submitButton.disabled = false;
+                    submitButton.innerText = "Submit";
+                    loadingMessage.style.display = "none";
+                });
+        }
+    </script>
+</body>
+</html>
