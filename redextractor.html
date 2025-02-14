@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVMS Data Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        textarea {
+            width: 80%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2>Access Times Report</h2>
+    <textarea id="dataInput" placeholder="Paste your data here..."></textarea>
+    <br>
+    <button onclick="processData()">Extract Data</button>
+    <button onclick="downloadExcel()">Download Excel</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Person ID</th>
+                <th>Name</th>
+                <th>Records</th>
+                <th>First Access</th>
+                <th>Last Access</th>
+            </tr>
+        </thead>
+        <tbody id="outputTable"></tbody>
+    </table>
+    
+    <script>
+        function processData() {
+            const inputData = document.getElementById("dataInput").value.trim();
+            if (!inputData) {
+                alert("Please paste data first");
+                return;
+            }
+            
+            const lines = inputData.split("\n");
+            let peopleMap = {};
+            
+            lines.forEach(line => {
+                const columns = line.split("\t"); // Assuming tab-separated data
+                if (columns.length < 10) return; // Ensure enough columns exist
+                
+                let personID = columns[1].trim(); // Second column is Person ID
+                let name = columns[2].trim(); // Third column is Name
+                let records = columns[9].trim().split(" "); // Extract records column and split times
+                
+                if (!personID || !name || records.length === 0) return;
+                
+                let firstAccess = records[0];
+                let lastAccess = records[records.length - 1];
+                
+                peopleMap[personID] = { name, records: records.join(" "), first: firstAccess, last: lastAccess };
+            });
+            
+            let sortedPeople = Object.entries(peopleMap).sort((a, b) => a[1].name.localeCompare(b[1].name));
+            let tbody = document.getElementById("outputTable");
+            tbody.innerHTML = "";
+            
+            sortedPeople.forEach(([personID, data]) => {
+                let row = `<tr><td>${personID}</td><td>${data.name}</td><td>${data.records}</td><td>${data.first}</td><td>${data.last}</td></tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        function downloadExcel() {
+            let table = document.querySelector("table");
+            let rows = table.querySelectorAll("tr");
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            rows.forEach(row => {
+                let cols = row.querySelectorAll("td, th");
+                let rowData = [];
+                cols.forEach(col => rowData.push(col.innerText));
+                csvContent += rowData.join(",") + "\n";
+            });
+            
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "access_times_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
