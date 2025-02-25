@@ -5,24 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projected Image</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling */
             background: black;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
         }
         img {
             width: 100vw;
             height: 100vh;
-            object-fit: cover;
+            object-fit: contain; /* Ensures full image is visible */
         }
     </style>
 </head>
 <body>
-    <img src="https://raw.githubusercontent.com/glpdtech/ai/main/it/vip01.jpg" alt="Projected Image">
+    <img src="https://raw.githubusercontent.com/glpdtech/ai/main/it/vip1.jpg" alt="Projected Image">
 </body>
 </html>
