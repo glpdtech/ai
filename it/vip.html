@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Image Projection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        img {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <img id="projectedImage" src="https://drive.google.com/uc?export=view&id=1GAPzKPlSWNb__d-JvFvBDphlLAy5Cti0" alt="Projected Image">
+    
+    <script>
+        function refreshImage() {
+            const image = document.getElementById("projectedImage");
+            const timestamp = new Date().getTime();
+            image.src = `https://drive.google.com/uc?export=view&id=YOUR_FILE_ID&t=${timestamp}`;
+        }
+
+        // Refresh the image every 5 seconds
+        setInterval(refreshImage, 5000);
+    </script>
+</body>
+</html>
