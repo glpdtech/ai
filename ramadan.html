@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Times Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .name-list {
+            display: inline-block;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+            width: 300px;
+        }
+    </style>
+    <script>
+        let extractedData = [];
+        let uniqueNames = new Set();
+
+        function extractData() {
+            let inputData = document.getElementById("dataInput").value.trim();
+            let lines = inputData.split("\n");
+            let records = {};
+            uniqueNames.clear();
+
+            lines.forEach(line => {
+                let parts = line.split("\t"); // Assuming tab-separated values
+                if (parts.length < 8) return;
+
+                let id = parts[0].trim();
+                let name = parts[1].trim();
+                let date = parts[3].trim();
+                let checkIn = parts[6].trim() !== '-' ? parts[6].trim() : null;
+                let checkOut = parts[7].trim() !== '-' ? parts[7].trim() : null;
+
+                let key = id + "|" + name;
+                uniqueNames.add(name);
+
+                if (!records[key]) {
+                    records[key] = {
+                        id: id,
+                        name: name,
+                        checkInDate: date,
+                        checkInTime: checkIn,
+                        checkOutDate: date,
+                        checkOutTime: checkOut
+                    };
+                } else {
+                    if (checkIn && (!records[key].checkInTime || date < records[key].checkInDate)) {
+                        records[key].checkInDate = date;
+                        records[key].checkInTime = checkIn;
+                    }
+                    if (checkOut && (!records[key].checkOutTime || date > records[key].checkOutDate)) {
+                        records[key].checkOutDate = date;
+                        records[key].checkOutTime = checkOut;
+                    }
+                }
+            });
+
+            updateNameList();
+            extractedData = Object.values(records);
+            generateTable();
+        }
+
+        function updateNameList() {
+            let nameListDiv = document.getElementById("nameList");
+            nameListDiv.innerHTML = "";
+            uniqueNames.forEach(name => {
+                let div = document.createElement("div");
+                let checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = true;
+                checkbox.value = name;
+                checkbox.classList.add("nameCheckbox");
+                div.appendChild(checkbox);
+                div.appendChild(document.createTextNode(" " + name));
+                nameListDiv.appendChild(div);
+            });
+        }
+
+        function generateTable() {
+            let selectedNames = new Set(
+                Array.from(document.querySelectorAll(".nameCheckbox:checked")).map(cb => cb.value)
+            );
+
+            let tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = "";
+
+            extractedData.forEach(record => {
+                if (selectedNames.has(record.name)) {
+                    let row = `<tr>
+                        <td>${record.id}</td>
+                        <td>${record.name}</td>
+                        <td>${record.checkInDate}</td>
+                        <td>${record.checkInTime || '-'}</td>
+                        <td>${record.checkOutDate}</td>
+                        <td>${record.checkOutTime || '-'}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                }
+            });
+        }
+
+        function downloadExcel() {
+            let selectedNames = new Set(
+                Array.from(document.querySelectorAll(".nameCheckbox:checked")).map(cb => cb.value)
+            );
+
+            let filteredData = extractedData.filter(record => selectedNames.has(record.name));
+
+            if (filteredData.length === 0) {
+                alert("No data available to download.");
+                return;
+            }
+
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet([
+                ["Person ID", "Name", "Date of Check-In", "Check-In Time", "Date of Check-Out", "Check-Out Time"],
+                ...filteredData.map(record => [
+                    record.id,
+                    record.name,
+                    record.checkInDate,
+                    record.checkInTime || '-',
+                    record.checkOutDate,
+                    record.checkOutTime || '-'
+                ])
+            ]);
+
+            XLSX.utils.book_append_sheet(wb, ws, "Access Times");
+            XLSX.writeFile(wb, "Access_Times_Report.xlsx");
+        }
+    </script>
+</head>
+<body>
+    <h2>Access Times Report</h2>
+    <textarea id="dataInput" placeholder="Paste your data here..."></textarea>
+    <br>
+    <button onclick="extractData()">Extract Data</button>
+    <button onclick="generateTable()">Update Table</button>
+    <button onclick="downloadExcel()">Download Excel</button>
+    <br><br>
+
+    <h3>Select Names to Include:</h3>
+    <div class="name-list" id="nameList"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Person ID</th>
+                <th>Name</th>
+                <th>Date of Check-In</th>
+                <th>Check-In Time</th>
+                <th>Date of Check-Out</th>
+                <th>Check-Out Time</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</body>
+</html>
