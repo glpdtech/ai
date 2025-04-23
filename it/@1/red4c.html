@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gulf Land Reservation System</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1c1c1c;
+      color: white;
+      padding-top: 80px;
+    }
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background-color: #1c1c1c;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      color: #e50914;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background: #2b2b2b;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+      margin: 20px;
+      width: calc(50% - 40px);
+      box-sizing: border-box;
+    }
+    .card h2 {
+      color: #e50914;
+    }
+    .card input, .card select, .card textarea {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      background-color: #1c1c1c;
+      color: white;
+      border: none;
+    }
+    .card button {
+      width: 100%;
+      padding: 1rem;
+      background: #e50914;
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .requests-list {
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .request-item {
+      background-color: #2b2b2b;
+      padding: 14px;
+      border-left: 4px solid #e50914;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      color: white;
+      text-align: left;
+    }
+    .status-approved {
+      background-color: #28a745; /* Green for approved */
+      color: white;
+    }
+    .status-pending {
+      background-color: #ffc107; /* Yellow for pending */
+      color: white;
+    }
+    .status-rejected {
+      background-color: #dc3545; /* Red for rejected */
+      color: white;
+    }
+    @media (max-width: 768px) {
+      .card { width: 100%; }
+      .header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Gulf Land Reservation System</h1>
+  </div>
+
+  <!-- Main Content Container -->
+  <div class="container">
+    <!-- Booking Form Card -->
+    <div class="card">
+      <div class="logo-text">GLPD RS</div>
+      <h2>Book a Meeting Room</h2>
+      <form id="bookingForm">
+        <label for="meeting-type">Meeting Type</label>
+        <select id="meeting-type" required onchange="toggleMeetingFields()">
+          <option value="">-- Select Type --</option>
+          <option value="internal">Internal</option>
+          <option value="external">External</option>
+        </select>
+
+        <div id="internal-fields" style="display:none;">
+          <label for="room">Select Room</label>
+          <select id="room">
+            <option value="">-- Select Room --</option>
+            <option>Meeting Room 1</option>
+            <option>Meeting Room 2</option>
+            <option>Meeting Room 3</option>
+            <option>Meeting Room 4</option>
+            <option>Meeting Room 5</option>
+            <option>Conference Room</option>
+          </select>
+
+          <label for="purpose">Purpose of Use</label>
+          <textarea id="purpose" rows="3"></textarea>
+
+          <label for="plate">Car Plate Number</label>
+          <input type="text" id="plate" placeholder="e.g., ABC-1234">
+        </div>
+
+        <div id="external-fields" style="display:none;">
+          <p style="margin-top: 10px; font-size: 14px; color: #666;">
+            External meetings only require date, time, and location.
+          </p>
+          
+          <label for="location">Location (Address or Google Maps link)</label>
+          <input type="text" id="location" placeholder="e.g., 123 Main St, City">
+
+          <label for="meeting-with">Meeting With</label>
+          <select id="meeting-with">
+            <option value="">-- Select --</option>
+            <option value="company">Company</option>
+            <option value="individual">Individual</option>
+          </select>
+
+          <label for="details">Additional Details</label>
+          <textarea id="details" rows="3" placeholder="Optional: Provide additional info"></textarea>
+
+          <label for="geo-location">Or use geolocation</label>
+          <button type="button" onclick="getLocation()">Get My Location</button>
+          <p id="geoOutput" style="font-size: 13px; color: #666;"></p>
+        </div>
+
+        <label for="date">Reservation Date</label>
+        <input type="date" id="date" required>
+
+        <label for="start">Start Time</label>
+        <input type="time" id="start" required>
+
+        <label for="end">End Time</label>
+        <input type="time" id="end" required>
+
+        <button type="submit">Submit Reservation</button>
+      </form>
+    </div>
+
+   
+<div class="card">
+  <h2>Your Reservation Requests</h2>
+  <p style="color: #ddd;">Please enter your email address below to view the status of your meeting room and parking reservations.</p>
+  <input type="text" id="email" placeholder="Enter your email address" oninput="loadUserRequests()" />
+  
+  <div id="requestsList" class="requests-list">
+    <p style="color: #aaa;">Enter your email to see your reservation details.</p>
+  </div>
+  
+  <!-- Button to open the room availability modal -->
+  <button class="check-availability-btn" onclick="openRoomAvailabilityModal()">Check Room Availability</button>
+
+  <!-- Modal for Room Availability -->
+  <div id="roomAvailabilityModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeRoomAvailabilityModal()">&times;</span>
+      <h3>Room Availability Overview</h3>
+      <div id="roomAvailability" class="room-availability">
+        <!-- Room availability will be dynamically inserted here -->
+      </div>
+      <button class="close-btn" onclick="closeRoomAvailabilityModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Handling form submission and refreshing request data
+  document.getElementById("bookingForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    alert("Your reservation has been submitted successfully.");
+    loadUserRequests(); // simulate refreshing the request list
+  });
+
+  // Function to toggle the visibility of meeting fields based on the selected meeting type
+  function toggleMeetingFields() {
+    const type = document.getElementById("meeting-type").value;
+    document.getElementById("internal-fields").style.display = type === "internal" ? "block" : "none";
+    document.getElementById("external-fields").style.display = type === "external" ? "block" : "none";
+  }
+
+  // Function to load and display user-specific reservation requests
+  function loadUserRequests() {
+    const email = document.getElementById("email").value.trim();
+    const list = document.getElementById("requestsList");
+
+    // If no email is entered, prompt the user to input it
+    if (!email) {
+      list.innerHTML = "<p style='color:#aaa;'>Please enter your email address to view your reservation requests.</p>";
+      return;
+    }
+
+    // Simulate loading user-specific reservation requests
+    const requests = [
+      {
+        type: "internal",
+        room: "Conference Room",
+        plate: "ABC-1234",
+        purpose: "Quarterly Review",
+        date: "2025-04-24",
+        start: "10:00",
+        end: "12:00",
+        roomStatus: "Approved",
+        parkingStatus: "Pending"
+      },
+      {
+        type: "internal",
+        room: "Meeting Room 1",
+        plate: "XYZ-5678",
+        purpose: "Team Sync",
+        date: "2025-04-26",
+        start: "13:00",
+        end: "14:30",
+        roomStatus: "Pending",
+        parkingStatus: "Pending"
+      },
+      {
+        type: "external",
+        location: "https://www.google.com/maps?q=25.276987,55.296249",
+        meetingWith: "Company",
+        details: "Meeting with XYZ Corp",
+        date: "2025-04-25",
+        start: "14:00",
+        end: "15:30"
+      }
+    ];
+
+    list.innerHTML = "";
+    requests.forEach(req => {
+      const item = document.createElement("div");
+      item.className = "request-item";
+
+      if (req.type === "internal") {
+        item.innerHTML = `
+          <p><strong>Type:</strong> Internal</p>
+          <p><strong>Room:</strong> ${req.room}</p>
+          <p><strong>Car Plate:</strong> ${req.plate}</p>
+          <p><strong>Purpose:</strong> ${req.purpose}</p>
+          <p><strong>Date:</strong> ${req.date}</p>
+          <p><strong>Time:</strong> ${req.start} - ${req.end}</p>
+          <p><strong>Room Status:</strong> <span class="status-${req.roomStatus.toLowerCase()}">${req.roomStatus}</span></p>
+          <p><strong>Parking Status:</strong> <span class="status-${req.parkingStatus.toLowerCase()}">${req.parkingStatus}</span></p>
+        `;
+      } else {
+        item.innerHTML = `
+          <p><strong>Type:</strong> External</p>
+          <p><strong>Location:</strong> <a href="${req.location}" target="_blank">View Location on Google Maps</a></p>
+          <p><strong>Meeting With:</strong> ${req.meetingWith}</p>
+          <p><strong>Details:</strong> ${req.details}</p>
+          <p><strong>Date:</strong> ${req.date}</p>
+          <p><strong>Time:</strong> ${req.start} - ${req.end}</p>
+          <p><strong>Status:</strong> <span class="status-pending">Pending Approval</span></p>
+        `;
+      }
+
+      list.appendChild(item);
+    });
+  }
+
+  // Function to open the Room Availability Modal
+  function openRoomAvailabilityModal() {
+    document.getElementById("roomAvailabilityModal").style.display = "block";
+    loadRoomAvailability();  // Load room availability when modal opens
+  }
+
+  // Function to close the Room Availability Modal
+  function closeRoomAvailabilityModal() {
+    document.getElementById("roomAvailabilityModal").style.display = "none";
+  }
+
+  // Function to load and display room availability
+  function loadRoomAvailability() {
+    const roomAvailability = document.getElementById("roomAvailability");
+
+    // Simulated room availability data
+    const rooms = [
+      {
+        name: "Conference Room",
+        availableSlots: [
+          { start: "08:00", end: "10:00", status: "Available" },
+          { start: "10:00", end: "12:00", status: "Reserved" },
+          { start: "12:00", end: "14:00", status: "Available" },
+        ]
+      },
+      {
+        name: "Meeting Room 1",
+        availableSlots: [
+          { start: "09:00", end: "11:00", status: "Available" },
+          { start: "11:00", end: "13:00", status: "Reserved" },
+          { start: "13:00", end: "15:00", status: "Available" },
+        ]
+      },
+      {
+        name: "Meeting Room 2",
+        availableSlots: [
+          { start: "08:00", end: "10:00", status: "Available" },
+          { start: "10:00", end: "12:00", status: "Available" },
+          { start: "12:00", end: "14:00", status: "Reserved" },
+        ]
+      }
+    ];
+
+    roomAvailability.innerHTML = "";
+
+    rooms.forEach(room => {
+      const roomDiv = document.createElement("div");
+      roomDiv.className = "room-item";
+      roomDiv.innerHTML = `<h4>${room.name}</h4>`;
+
+      const slotList = document.createElement("ul");
+      room.availableSlots.forEach(slot => {
+        const slotItem = document.createElement("li");
+        slotItem.innerHTML = `${slot.start} - ${slot.end}: <span class="status-${slot.status.toLowerCase()}">${slot.status}</span>`;
+        slotItem.classList.add(slot.status.toLowerCase() === "available" ? "available-slot" : "reserved-slot");
+        slotList.appendChild(slotItem);
+      });
+
+      roomDiv.appendChild(slotList);
+      roomAvailability.appendChild(roomDiv);
+    });
+  }
+</script>
+
+<!-- Styles for the room availability section and modal -->
+<style>
+  .check-availability-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+
+  .check-availability-btn:hover {
+    background-color: #0056b3;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+  }
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    margin: 10% auto;
+  }
+
+  .close-btn {
+    font-size: 25px;
+    color: #aaa;
+    cursor: pointer;
+    float: right;
+  }
+
+  .room-availability {
+    margin-top: 20px;
+  }
+
+  .room-item {
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .room-item h4 {
+    margin-top: 0;
+    color: #2c3e50;
+  }
+
+  .room-item ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .room-item li {
+    margin: 5px 0;
+  }
+
+  .status-available {
+    color: green;
+    font-weight: bold;
+  }
+
+  .status-reserved {
+    color: red;
+    font-weight: bold;
+  }
+
+  .available-slot {
+    cursor: pointer;
+    color: green;
+  }
+
+  .reserved-slot {
+    color: red;
+  }
+</style>
+
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLPD RS - Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1c1c1c;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-image: radial-gradient(#333 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .login-container {
+      background: #2b2b2b;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .login-container h1 {
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+      color: #e50914;
+    }
+
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+      width: calc(100% - 2rem);
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #1c1c1c;
+      color: white;
+    }
+
+    .login-container input[type="text"]:focus,
+    .login-container input[type="password"]:focus {
+      outline: none;
+      box-shadow: 0 0 5px #e50914;
+    }
+
+    .login-container button {
+      width: calc(100% - 2rem);
+      padding: 0.8rem;
+      background: #e50914;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .login-container button:hover {
+      background: #b20610;
+    }
+
+    .logo-text {
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo-text">GLPD RS</div>
+    <h1>Gulf Land Reservation System</h1>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <script>
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      // Placeholder login logic - replace with actual Google Sheets lookup later
+      const users = {
+        'admin': { password: 'admin123', role: 'admin' },
+        'user1': { password: 'user123', role: 'user' },
+      };
+
+      if (users[username] && users[username].password === password) {
+        if (users[username].role === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'user.html';
+        }
+      } else {
+        alert('Invalid credentials.');
+      }
+    }
+  </script>
+</body>
+</html>

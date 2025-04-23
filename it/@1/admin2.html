@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLPD RS - Admin Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1c1c1c;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-image: radial-gradient(#333 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #2b2b2b;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+      width: 100%;
+      max-width: 1200px;
+      margin: 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card h2 {
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+      color: #e50914;
+    }
+
+    .card label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .card input[type="text"],
+    .card select,
+    .card input[type="time"] {
+      width: calc(100% - 2rem);
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border: none;
+      border-radius: 6px;
+      background-color: #1c1c1c;
+      color: white;
+    }
+
+    .card input[type="text"]:focus,
+    .card select:focus,
+    .card input[type="time"]:focus {
+      outline: none;
+      box-shadow: 0 0 5px #e50914;
+    }
+
+    .card button {
+      padding: 0.8rem;
+      background: #e50914;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .card button:hover {
+      background: #b20610;
+    }
+
+    .requests-list {
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .request-item {
+      background-color: #1c1c1c;
+      padding: 14px 16px;
+      border-left: 4px solid #e50914;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      color: white;
+      text-align: left;
+    }
+
+    .request-item button {
+      padding: 0.5rem 1rem;
+      background-color: #4caf50;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .request-item button.deny {
+      background-color: #f44336;
+    }
+
+    .request-item button.update {
+      background-color: #f7a800;
+    }
+
+    .header-text {
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .logo-text {
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .header-subtext {
+      font-size: 14px;
+      color: #bdc3c7;
+      margin-top: 4px;
+    }
+
+    .search-container {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .search-container input {
+      padding: 0.8rem;
+      background-color: #1c1c1c;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Admin Dashboard Card -->
+    <div class="card">
+      <div class="logo-text">GLPD RS</div>
+      <h2>Admin Dashboard</h2>
+
+      <!-- Search for requests -->
+      <div class="search-container">
+        <label for="search">Search Requests by Email</label>
+        <input type="text" id="search" placeholder="Search by email or request ID" oninput="searchRequests()" />
+      </div>
+
+      <!-- Reservation Requests List -->
+      <div id="requestsList" class="requests-list">
+        <!-- Dynamic reservation requests will go here -->
+        <p style="color: #bdc3c7;">No requests yet. Start by searching or viewing reservations.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simulated list of requests
+    const requests = [
+      {
+        email: "user1@example.com",
+        room: "Meeting Room 1",
+        date: "2025-04-24",
+        startTime: "09:00",
+        endTime: "10:00",
+        status: "Pending",
+        plate: "ABC-1234",
+        purpose: "Board Meeting",
+        parkingStatus: "Pending",
+        type: "internal"
+      },
+      {
+        email: "user2@example.com",
+        room: "Meeting Room 2",
+        date: "2025-04-25",
+        startTime: "14:00",
+        endTime: "15:00",
+        status: "Pending",
+        location: "https://www.google.com/maps?q=25.276987,55.296249",
+        meetingWith: "company",
+        details: "Meeting with XYZ Corp",
+        parkingStatus: "Approved",
+        type: "external"
+      }
+    ];
+
+    // Function to display all requests
+    function loadRequests() {
+      const list = document.getElementById("requestsList");
+      list.innerHTML = '';
+
+      requests.forEach((req, index) => {
+        const item = document.createElement("div");
+        item.className = "request-item";
+        item.innerHTML = `
+          <p><strong>Email:</strong> ${req.email}</p>
+          <p><strong>Type:</strong> ${req.type}</p>
+          <p><strong>Date:</strong> ${req.date}</p>
+          <p><strong>Start Time:</strong> ${req.startTime}</p>
+          <p><strong>End Time:</strong> ${req.endTime}</p>
+          <p><strong>Status:</strong> ${req.status}</p>
+          ${req.type === "internal" ? `
+            <p><strong>Room:</strong> ${req.room}</p>
+            <p><strong>Plate:</strong> ${req.plate}</p>
+            <p><strong>Purpose:</strong> ${req.purpose}</p>
+          ` : `
+            <p><strong>Location:</strong> ${req.location}</p>
+            <p><strong>Meeting With:</strong> ${req.meetingWith}</p>
+            <p><strong>Details:</strong> ${req.details}</p>
+          `}
+          <button onclick="approveRequest(${index})">Approve</button>
+          <button class="deny" onclick="denyRequest(${index})">Deny</button>
+          <button class="update" onclick="updateRequest(${index})">Update</button>
+          <button class="update" onclick="updateParking(${index})">Update Parking Status</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Function to approve a request
+    function approveRequest(index) {
+      requests[index].status = 'Approved';
+      loadRequests(); // Re-load the list to show updates
+    }
+
+    // Function to deny a request
+    function denyRequest(index) {
+      requests[index].status = 'Denied';
+      loadRequests(); // Re-load the list to show updates
+    }
+
+    // Function to update a request (room or time)
+    function updateRequest(index) {
+      const req = requests[index];
+      const newRoom = prompt(`Update room for ${req.email} (Current: ${req.room})`, req.room);
+      const newStartTime = prompt(`Update start time for ${req.email} (Current: ${req.startTime})`, req.startTime);
+      const newEndTime = prompt(`Update end time for ${req.email} (Current: ${req.endTime})`, req.endTime);
+
+      if (newRoom !== null && newRoom !== "") {
+        req.room = newRoom;
+      }
+      if (newStartTime !== null && newStartTime !== "") {
+        req.startTime = newStartTime;
+      }
+      if (newEndTime !== null && newEndTime !== "") {
+        req.endTime = newEndTime;
+      }
+
+      loadRequests(); // Re-load the list to show updates
+    }
+
+    // Function to update parking status
+    function updateParking(index) {
+      const req = requests[index];
+      const newParkingStatus = prompt(`Update parking status for ${req.email} (Current: ${req.parkingStatus})`, req.parkingStatus);
+
+      if (newParkingStatus !== null && newParkingStatus !== "") {
+        req.parkingStatus = newParkingStatus;
+      }
+
+      loadRequests(); // Re-load the list to show updates
+    }
+
+    // Function to filter requests by search
+    function searchRequests() {
+      const searchTerm = document.getElementById('search').value.toLowerCase();
+      const filteredRequests = requests.filter(req =>
+        req.email.toLowerCase().includes(searchTerm) ||
+        req.status.toLowerCase().includes(searchTerm)
+      );
+      
+      const list = document.getElementById("requestsList");
+      list.innerHTML = '';
+
+      filteredRequests.forEach((req, index) => {
+        const item = document.createElement("div");
+        item.className = "request-item";
+        item.innerHTML = `
+          <p><strong>Email:</strong> ${req.email}</p>
+          <p><strong>Type:</strong> ${req.type}</p>
+          <p><strong>Date:</strong> ${req.date}</p>
+          <p><strong>Start Time:</strong> ${req.startTime}</p>
+          <p><strong>End Time:</strong> ${req.endTime}</p>
+          <p><strong>Status:</strong> ${req.status}</p>
+          ${req.type === "internal" ? `
+            <p><strong>Room:</strong> ${req.room}</p>
+            <p><strong>Plate:</strong> ${req.plate}</p>
+            <p><strong>Purpose:</strong> ${req.purpose}</p>
+          ` : `
+            <p><strong>Location:</strong> ${req.location}</p>
+            <p><strong>Meeting With:</strong> ${req.meetingWith}</p>
+            <p><strong>Details:</strong> ${req.details}</p>
+          `}
+          <button onclick="approveRequest(${index})">Approve</button>
+          <button class="deny" onclick="denyRequest(${index})">Deny</button>
+          <button class="update" onclick="updateRequest(${index})">Update</button>
+          <button class="update" onclick="updateParking(${index})">Update Parking Status</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Load initial requests
+    loadRequests();
+  </script>
+</body>
+</html>
